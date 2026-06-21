@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'
-    show ScreenUtil, ScreenUtilInit;
-import 'package:hungry_app/features/auth/view/login_view.dart';
-import 'package:hungry_app/features/auth/view/signup_view.dart';
-import 'package:hungry_app/root.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hungry_app/core/injection/injection.dart';
+import 'package:hungry_app/core/theme/app_theme.dart';
+import 'package:hungry_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:hungry_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:hungry_app/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:hungry_app/features/favorites/presentation/bloc/favorite_bloc.dart';
+import 'package:hungry_app/features/favorites/presentation/bloc/favorite_event.dart';
+import 'package:hungry_app/features/home/presentation/bloc/home_bloc.dart';
+import 'package:hungry_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:hungry_app/features/profile/presentation/bloc/profile_event.dart';
 import 'package:hungry_app/splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
+  await initDependencies();
 
   runApp(const MyApp());
 }
@@ -22,21 +28,25 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // This widget is the root of your application.
-  @override
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context);
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (context, child) {
-        return MaterialApp(
-          theme: ThemeData(splashColor: Colors.transparent),
-          home: SplashView(),
-          debugShowCheckedModeBanner: false,
-          title: 'Flutter Demo',
-
-          // routerConfig: RouterGenerationConfig.goRouter,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()..add(const AutoLoginRequested())),
+            BlocProvider<ProfileBloc>(create: (_) => sl<ProfileBloc>()..add(const ProfileInit())),
+            BlocProvider<HomeBloc>(create: (_) => sl<HomeBloc>()),
+            BlocProvider<CartBloc>(create: (_) => sl<CartBloc>()),
+            BlocProvider<FavoriteBloc>(create: (_) => sl<FavoriteBloc>()..add(const FavoritesRequested())),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: const SplashView(),
+            debugShowCheckedModeBanner: false,
+            title: 'Hungry App',
+          ),
         );
       },
     );
